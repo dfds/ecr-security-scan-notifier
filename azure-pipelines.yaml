@@ -39,7 +39,7 @@ stages:
   # Validation jobs
   jobs:
   - job: terraform
-    displayName: 'Provision ECR repositories'
+    displayName: 'Provision ECR security scan notifier lambda'
     pool:
       vmImage: "$(vmImage)"
     container: terraform_container
@@ -59,4 +59,9 @@ stages:
         workingDirectory: $(System.DefaultWorkingDirectory)
         targetType: inline
 
-
+    - task: Bash@3
+      displayName: "Terraform Apply"
+      inputs: 
+        script: 'terraform apply -auto-approve'
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        targetType: inline
