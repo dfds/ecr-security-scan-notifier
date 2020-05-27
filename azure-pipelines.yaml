@@ -1,0 +1,65 @@
+name: $(Build.BuildId)
+
+# Triggers Pipeline only on Master
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+    - README.md
+    - LICENSE
+    - azure-pipelines.yaml
+
+# Disables triggering Pipeline run at creation of every Pull Request
+pr: none
+
+# Global variables for the pipeline
+variables:
+- group: 'XXXX'
+- name: 'vmImage'
+  value: 'ubuntu-latest'
+
+# Ressources to import: Containers, Service Connections ect.
+resources:
+   containers:
+     - container: terraform_container
+       image: dfdsdk/prime-pipeline:0.4.0
+       # Mount Pipeline secrets as environment variables in container
+       env:
+        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+stages:
+# Continuous Integration steps
+- stage: CI
+  displayName: 'Continuous Integration'
+  # Validation jobs
+  jobs:
+  - job: terraform
+    displayName: 'Provision ECR repositories'
+    pool:
+      vmImage: "$(vmImage)"
+    container: terraform_container
+
+    steps:
+    - task: Bash@3
+      displayName: "Initialize Terraform"
+      inputs: 
+        script: 'terraform init'
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        targetType: inline
+
+    - task: Bash@3
+      displayName: "Terraform Plan"
+      inputs: 
+        script: 'terraform plan'
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        targetType: inline
+
+    - task: Bash@3
+      displayName: "Terraform Apply"
+      inputs: 
+        script: 'terraform apply -auto-approve'
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        targetType: inline

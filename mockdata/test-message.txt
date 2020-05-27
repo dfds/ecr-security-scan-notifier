@@ -1,0 +1,22 @@
+{
+    "version": "0",
+    "id": "85fc3613-e913-7fc4-a80c-a3753e4aa9ae",
+    "detail-type": "ECR Image Scan",
+    "source": "aws.ecr",
+    "account": "303269352904",
+    "time": "2019-10-29T02:36:48Z",
+    "region": "eu-west-1",
+    "resources": [
+        "arn:aws:ecr:eu-west-1:303269352904:repository/test"
+    ],
+    "detail": {
+        "scan-status": "COMPLETE",
+        "repository-name": "test",
+        "finding-severity-counts": {
+	       "CRITICAL": 10,
+	       "MEDIUM": 9
+	     },
+        "image-digest": "sha256:ca013ac5c09f9a9f6db8370c1b759a29fe997d64d6591e9a75b71748858f7da0",
+        "image-tags": []
+    }
+}
