@@ -53,9 +53,9 @@ stages:
         targetType: inline
 
     - task: Bash@3
-      displayName: "Terraform Plan"
+      displayName: "Terraform Apply"
       inputs: 
-        script: 'terraform plan'
+        script: 'terraform apply'
         workingDirectory: $(System.DefaultWorkingDirectory)
         targetType: inline
 
