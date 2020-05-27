@@ -1,0 +1,104 @@
+name: $(Build.BuildId)
+
+# Triggers Pipeline only on Master
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+    - README.md
+    - LICENSE
+
+# Disables triggering Pipeline run at creation of every Pull Request
+pr: none
+
+# Global variables for the pipeline
+variables:
+  agent-pool: 'Docker-pool'
+  k8s-service-connection: 'Kubernetes-Service-Connection-Name'
+  kubernetes-namespace: 'capability-xxxx'
+
+# Ressources to import: Containers, Service Connections ect.
+resources:
+   containers:
+     - container: displayname_of_container
+       image: repo/container-name:tag
+       # Mount Pipeline secrets as environment variables in container
+       env:
+        PIPELINE_SECRET_VARIABLE1: $(PIPELINE_SECRET_VARIABLE1)
+        PIPELINE_SECRET_VARIABLE2: $(PIPELINE_SECRET_VARIABLE2)
+
+
+stages:
+# Continuous Integration steps
+- stage: CI
+  displayName: 'Continuous Integration'
+  # Validation jobs
+  jobs:
+  - job: Validate
+    pool: '$(agent-pool)'
+   
+   # Validate pipeline / group variables
+    steps:   
+    - bash:
+        echo 'Checking for required variables...'
+        bash -c '[[ -z $VARIABLE1 || -z $VARIABLE2 ]] && exit 1 || true'
+      displayName: Testing environment variables
+
+  # Build jobs
+  - job: Build
+    pool: '$(agent-pool)'
+
+    steps:
+    # Upload Kubernetes manifests to current artifact Pipeline from folder /k8s
+    - publish: $(System.DefaultWorkingDirectory)/k8s
+      artifact: manifests
+      displayName: 'Publish Artifact: manifests'
+
+# Continuous Deployment steps
+- stage: CD
+  displayName: 'Continuous Deployment'
+  dependsOn: CI
+  # Run CD only if CI succeeds and if pipeline runs from Master branch
+  condition: and(succeeded('CI'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+
+  jobs:
+  - deployment: K8s
+    displayName: 'Deploy to Kubernetes'
+    pool: '$(agent-pool)'
+    container: displayname_of_container
+    environment: 'Hellman'
+
+    strategy: 
+      runOnce:
+        deploy:
+          steps:
+          # Download manifest from current artifacts pipeline
+          - download: current
+            artifact: manifests
+            displayName: 'Download Artifact: manifests'
+          
+          # Replace token values in yaml files with pipeline variables
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: 'Replace tokens in yaml files'
+            inputs:
+              rootDirectory: '$(Pipeline.Workspace)/manifests/'
+              targetFiles: '*.yml'
+              tokenPrefix: '$('
+              tokenSuffix: ')'
+          
+          # Upload the modified Kubernetes manifests to current Pipeline for easy debugging
+          - publish: $(Pipeline.Workspace)/manifests/
+            artifact: deployed-manifests
+            displayName: 'Publish Artifact: manifests'
+
+          # Apply Kubernetes manifests
+          - task: Kubernetes@1
+            displayName: 'Apply manifests'
+            inputs:
+              connectionType: Kubernetes Service Connection
+              kubernetesServiceEndpoint: '$(k8s-service-connection)'
+              namespace: '$(kubernetes-namespace)'
+              command: apply
+              arguments: '-f $(Pipeline.Workspace)/manifests/'
