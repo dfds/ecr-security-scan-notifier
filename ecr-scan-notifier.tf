@@ -24,7 +24,7 @@ resource "aws_lambda_function" "ecr_to_slack" {
   role          = var.function_role
   handler       = "lambda_function.lambda_handler"
 
-  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  #source_code_hash = filebase64sha256("lambda_function_payload.zip")
 
   runtime = "python3.7"
   timeout = "120"
