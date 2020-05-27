@@ -16,7 +16,7 @@ pr: none
 
 # Global variables for the pipeline
 variables:
-- group: 'XXXX'
+- group: 'AWS Shared ECR Create repositories'
 - name: 'vmImage'
   value: 'ubuntu-latest'
 
@@ -57,9 +57,4 @@ stages:
         workingDirectory: $(System.DefaultWorkingDirectory)
         targetType: inline
 
-    - task: Bash@3
-      displayName: "Terraform Apply"
-      inputs: 
-        script: 'terraform apply -auto-approve'
-        workingDirectory: $(System.DefaultWorkingDirectory)
-        targetType: inline
+
