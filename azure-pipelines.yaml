@@ -24,7 +24,7 @@ variables:
 resources:
    containers:
      - container: terraform_container
-       image: dfdsdk/prime-pipeline:0.6.2
+       image: dfdsdk/prime-pipeline:0.6.7
        # Mount Pipeline secrets as environment variables in container
        env:
         AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
