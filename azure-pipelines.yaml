@@ -60,8 +60,8 @@ stages:
         targetType: inline
 
     - task: Bash@3
-      displayName: "Terraform Apply"
+      displayName: "Terraform Destroy"
       inputs: 
-        script: 'terraform apply -auto-approve'
+        script: 'terraform destroy -auto-approve'
         workingDirectory: $(System.DefaultWorkingDirectory)
         targetType: inline
